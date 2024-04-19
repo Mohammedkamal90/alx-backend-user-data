@@ -6,6 +6,19 @@ from flask import abort, jsonify, request
 from models.user import User
 
 
+# Inside the handler for the route GET /api/v1/users/<user_id>
+def get_user(user_id):
+    """
+    Retrieve a user
+    """
+    if user_id == 'me':
+        if request.current_user is None:
+            abort(404)
+        user = request.current_user.to_dict()
+        return jsonify(user)
+    else:
+        # Your existing code for handling other cases
+
 @app_views.route('/users', methods=['GET'], strict_slashes=False)
 def view_all_users() -> str:
     """ GET /api/v1/users
