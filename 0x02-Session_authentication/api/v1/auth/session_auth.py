@@ -7,34 +7,34 @@ from api.v1.views import app_views
 from models.user import User
 from api.v1.app import auth
 
-@app_views.route('/auth_session/login', methods=['POST'], strict_slashes=False)
-@app_views.route('/auth_session/login/', methods=['POST'], strict_slashes=False)
-def auth_session_login():
+class SessionAuth(Auth):
     """
-    Handle user login for session authentication
+    SessionAuth class
     """
-    email = request.form.get('email')
-    password = request.form.get('password')
 
-    if not email:
-        return jsonify({"error": "email missing"}), 400
-    if not password:
-        return jsonify({"error": "password missing"}), 400
+    def __init__(self):
+        """
+        Initialize SessionAuth instance
+        """
+        super().__init__()
 
-    users = User.search({"email": email})
+    def current_user(self, request=None):
+        """
+        Return the User instance based on the cookie value
+        """
+        if request is None:
+            return None
 
-    if not users:
-        return jsonify({"error": "no user found for this email"}), 404
+        session_id = self.session_cookie(request)
 
-    user = users[0]
+        if session_id is None:
+            return None
 
-    if not user.is_valid_password(password):
-        return jsonify({"error": "wrong password"}), 401
+        user_id = self.user_id_for_session_id(session_id)
 
-    session_id = auth.create_session(user.id)
+        if user_id is None:
+            return None
 
-    resp = jsonify(user.to_json())
-    session_name = os.getenv('SESSION_NAME')
-    resp.set_cookie(session_name, session_id)
+        user = User.get(user_id)
 
-    return resp
+        return user
