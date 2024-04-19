@@ -26,14 +26,16 @@ class SessionAuth(Auth):
         if session_cookie_value is None:
             return None
 
-        # Get user ID for session ID
-        user_id = self.user_id_for_session_id(session_cookie_value)
+        session_id = self.session_cookie(request)
 
-        # If user ID is None, return None
+        if session_id is None:
+            return None
+
+        user_id = self.user_id_for_session_id(session_id)
+
         if user_id is None:
             return None
 
-        # Get user from database
         user = User.get(user_id)
 
         return user
