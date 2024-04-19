@@ -2,40 +2,39 @@
 """
 module Session Authentication
 """
-from api.v1.auth.auth import Auth
-import uuid
+from flask import jsonify, request
+from api.v1.views import app_views
 from models.user import User
+from api.v1.app import auth
 
+@app_views.route('/auth_session/login', methods=['POST'], strict_slashes=False)
+@app_views.route('/auth_session/login/', methods=['POST'], strict_slashes=False)
+def auth_session_login():
+    """
+    Handle user login for session authentication
+    """
+    email = request.form.get('email')
+    password = request.form.get('password')
 
-class SessionAuth(Auth):
-    """Session Authentication"""
+    if not email:
+        return jsonify({"error": "email missing"}), 400
+    if not password:
+        return jsonify({"error": "password missing"}), 400
 
-    def __init__(self):
-        """Constructor"""
-        super().__init__()
+    users = User.search({"email": email})
 
-    def current_user(self, request=None):
-        """Return current user based on session cookie"""
-        if request is None:
-            return None
+    if not users:
+        return jsonify({"error": "no user found for this email"}), 404
 
-        # Get session cookie value
-        session_cookie_value = self.session_cookie(request)
+    user = users[0]
 
-        # If session cookie is None, return None
-        if session_cookie_value is None:
-            return None
+    if not user.is_valid_password(password):
+        return jsonify({"error": "wrong password"}), 401
 
-        session_id = self.session_cookie(request)
+    session_id = auth.create_session(user.id)
 
-        if session_id is None:
-            return None
+    resp = jsonify(user.to_json())
+    session_name = os.getenv('SESSION_NAME')
+    resp.set_cookie(session_name, session_id)
 
-        user_id = self.user_id_for_session_id(session_id)
-
-        if user_id is None:
-            return None
-
-        user = User.get(user_id)
-
-        return user
+    return resp
