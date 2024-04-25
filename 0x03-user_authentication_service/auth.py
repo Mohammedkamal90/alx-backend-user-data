@@ -6,6 +6,24 @@ from db import DB
 from user import User
 from auth import _hash_password
 
+def _hash_password(password: str) -> bytes:
+    """
+    Hashes a password string using bcrypt.
+
+    Args:
+        password (str): The password to hash.
+
+    Returns:
+        bytes: The salted hash of the input password.
+    """
+    # Generate a salted hash of the input password
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    return hashed_password
+
+# Example usage
+if __name__ == "__main__":
+    print(_hash_password("Hello Holberton"))
+
 class Auth:
     """Auth class to interact with the authentication database."""
 
@@ -38,4 +56,3 @@ class Auth:
         user = self._db.add_user(email, hashed_password)
 
         return user
-
