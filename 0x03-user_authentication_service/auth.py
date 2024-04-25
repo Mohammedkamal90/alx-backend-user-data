@@ -14,20 +14,6 @@ class Auth:
     def __init__(self):
         self._db = DB()
 
-    def get_user_from_session_id(self, session_id: str) -> User:
-        """Get the user corresponding to the given session ID.
-
-        Args:
-            session_id: A string representing the session ID.
-
-        Returns:
-            User: The corresponding user if found, None otherwise.
-        """
-        if session_id:
-            user = self._db.find_user_by_session_id(session_id)
-            return user
-        return None
-
     def _hash_password(self, password: str) -> bytes:
         """Hashes the input password using bcrypt.
 
@@ -77,3 +63,28 @@ class Auth:
             self._db.update_user_session_id(user.email, session_id)
             return session_id
         return None
+
+    def get_user_from_session_id(self, session_id: str) -> User:
+        """Get the user corresponding to the given session ID.
+
+        Args:
+            session_id: A string representing the session ID.
+
+        Returns:
+            User: The corresponding user if found, None otherwise.
+        """
+        if session_id:
+            user = self._db.find_user_by_session_id(session_id)
+            return user
+        return None
+
+    def destroy_session(self, user_id: int) -> None:
+        """Destroy the session for the given user ID.
+
+        Args:
+            user_id: An integer representing the user ID.
+
+        Returns:
+            None
+        """
+        self._db.update_user_session_id(user_id, None)
